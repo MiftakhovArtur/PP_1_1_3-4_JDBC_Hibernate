@@ -31,9 +31,7 @@ public class UserDaoHibernateImpl implements UserDao {
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return null;
-    }
+    public List<User> getAllUsers() {return null;}
 
     @Override
     public void cleanUsersTable() {
