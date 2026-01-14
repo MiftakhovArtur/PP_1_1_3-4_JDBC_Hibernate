@@ -15,60 +15,74 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        String sql = """
-                CREATE TABLE IF NOT EXISTS users (
-                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                    name VARCHAR(50),
-                    lastName VARCHAR(50),
-                    age TINYINT
-                )
-                """;
-
+        Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.createNativeQuery(sql).executeUpdate();
+            tx = session.beginTransaction();
+            session.createQuery("delete from User").executeUpdate();
             tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw e;
         }
     }
 
     @Override
     public void dropUsersTable() {
-        String sql = "DROP TABLE IF EXISTS users";
-
+        Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.createNativeQuery(sql).executeUpdate();
+            tx = session.beginTransaction();
+            session.createNativeQuery("DROP TABLE IF EXISTS users").executeUpdate();
             tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw e;
         }
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        User user = new User(name, lastName, age);
-
+        Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.persist(user);
+            tx = session.beginTransaction();
+            session.persist(new User(name, lastName, age));
             tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw e;
         }
     }
 
     @Override
     public void removeUserById(long id) {
+        Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
+            tx = session.beginTransaction();
             User user = session.get(User.class, id);
             if (user != null) {
                 session.remove(user);
             }
             tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw e;
         }
     }
 
     @Override
     public List<User> getAllUsers() {
+        Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from User", User.class).list();
+            tx = session.beginTransaction();
+            List<User> users = session
+                    .createQuery("from User", User.class)
+                    .list();
+            tx.commit();
+            return users;
+        } catch (Exception e) {
+            if (tx != null) {
+                tx.rollback();
+            }
+            throw e;
         }
     }
 
